@@ -15,19 +15,12 @@ from ag_ui.core import (
 from pydantic import BaseModel
 
 from src.agents import classifique_intencao_do_usuario
-from src.infrastructure.a2a_agent_gateway import A2AAgentGateway
+from src.domain.agent_gateway import AgentGateway
+from src.infrastructure.dependencies import get_agent_gateway
 
 logger = logging.getLogger(__name__)
 
-# -----------------------------
-# REGISTRY DE AGENTES
-# -----------------------------
-AGENTS = {
-    "cartao_credito": "http://cartao_credito_agent:8000",
-    "abrir_conta": "http://abrir_conta_agent:8000"
-}
-
-agent_gateway = A2AAgentGateway(AGENTS)
+agent_gateway: AgentGateway = get_agent_gateway()
 
 # -----------------------------
 # STATE DO LANGGRAPH
