@@ -1,0 +1,41 @@
+{
+  "contas": {
+    "1234567890001": {
+      "nome": "Diego Augusto Portela",
+      "numero": 41008,
+      "saldo": 0.0
+    },
+    "12345678900": {
+      "nome": "Diego Portela",
+      "numero": 56527,
+      "saldo": 0.0
+    },
+    "12345678911": {
+      "nome": "Diego",
+      "numero": 24069,
+      "saldo": 0.0
+    },
+    "12345678999": {
+      "nome": "Diego Augusto",
+      "numero": 72257,
+      "saldo": 0.0
+    },
+    "05949918975": {
+      "nome": "Diego Portela",
+      "numero": 49883,
+      "saldo": 0.0
+    },
+    "05949918976": {
+      "nome": "Diego Augusto",
+      "numero": 36068,
+      "saldo": 0.0
+    }
+  },
+  "cartoes": {
+    "05949918976": {
+      "numero": 687900,
+      "tipo": "cr\u00e9dito",
+      "limite": 4045
+    }
+  }
+}

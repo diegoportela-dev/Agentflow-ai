@@ -1,0 +1,11 @@
+fastapi
+a2a-sdk[http-server]==0.3.24
+a2a-sdk==0.3.24
+ag-ui-protocol
+uvicorn
+langgraph
+langchain
+langchain_openai
+langchain-community
+httpx
+python-dotenv
