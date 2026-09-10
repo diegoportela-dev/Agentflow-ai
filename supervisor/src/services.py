@@ -1,14 +1,10 @@
 import logging
-import httpx
 import uuid
 
 from langgraph.graph import StateGraph, START, END
 from langgraph.types import Send
 from typing import TypedDict, Annotated
 from operator import add
-
-from a2a.client import A2ACardResolver, ClientFactory, ClientConfig
-from a2a.types import Message, Part, Role, TextPart
 
 from ag_ui.core import (
     EventType,
@@ -19,13 +15,9 @@ from ag_ui.core import (
 from pydantic import BaseModel
 
 from src.agents import classifique_intencao_do_usuario
+from src.infrastructure.a2a_agent_gateway import A2AAgentGateway
 
 logger = logging.getLogger(__name__)
-
-# -----------------------------
-# HTTP CLIENT GLOBAL
-# -----------------------------
-HTTPX_CLIENT = httpx.AsyncClient(timeout=30)
 
 # -----------------------------
 # REGISTRY DE AGENTES
@@ -35,8 +27,7 @@ AGENTS = {
     "abrir_conta": "http://abrir_conta_agent:8000"
 }
 
-# Cache de clientes A2A
-CLIENT_CACHE = {}
+agent_gateway = A2AAgentGateway(AGENTS)
 
 # -----------------------------
 # STATE DO LANGGRAPH
@@ -57,49 +48,6 @@ class StateUpdateEvent(BaseModel):
     state: dict
 
 # -----------------------------
-# CHAMADA PARA AGENTE A2A
-# -----------------------------
-
-
-async def request_agent(message: str, agent_url: str) -> str:
-
-    if agent_url not in CLIENT_CACHE:
-        logger.info(f"Descobrindo AgentCard em {agent_url}")
-
-        resolver = A2ACardResolver(
-            httpx_client=HTTPX_CLIENT,
-            base_url=agent_url,
-        )
-
-        agent_card = await resolver.get_agent_card()
-        logger.info(f"Agent encontrado: {agent_card.name}")
-
-        config = ClientConfig(
-            httpx_client=HTTPX_CLIENT,
-            streaming=False
-        )
-        factory = ClientFactory(config)
-        CLIENT_CACHE[agent_url] = factory.create(agent_card)
-
-    client = CLIENT_CACHE[agent_url]
-
-    msg = Message(
-        role=Role.user,
-        message_id=str(uuid.uuid4()),
-        parts=[Part(root=TextPart(text=message))],
-    )
-
-    logger.info(f"Enviando mensagem para agente: {message}")
-
-    async for event in client.send_message(msg):
-        if isinstance(event, Message):
-            for part in event.parts:
-                if part.root.kind == "text":
-                    return part.root.text
-
-    return "Sem resposta do agente."
-
-# -----------------------------
 # ROUTER
 # -----------------------------
 
@@ -118,7 +66,10 @@ async def no_de_roteamento(state: State):
 async def cartao_credito_node(state: State):
     query = state.get("query", "")
     logger.info("Executando agente CARTAO_CREDITO")
-    resposta = await request_agent(query, AGENTS["cartao_credito"])
+    resposta = await agent_gateway.send(
+        "cartao_credito",
+        query
+    )
     return {"responses": [resposta]}
 
 # -----------------------------
@@ -129,7 +80,10 @@ async def cartao_credito_node(state: State):
 async def abrir_conta_node(state: State):
     query = state.get("query", "")
     logger.info("Executando agente ABRIR_CONTA")
-    resposta = await request_agent(query, AGENTS["abrir_conta"])
+    resposta = await agent_gateway.send(
+        "abrir_conta",
+        query
+    )
     return {"responses": [resposta]}
 
 # -----------------------------
@@ -211,7 +165,10 @@ async def executar_supervisor_stream(input_data):
             delta=f"Chamando agente: {agent_name}...\n"
         )
 
-        resposta = await request_agent(c["query"], AGENTS[agent_name])
+        resposta = await agent_gateway.send(
+            agent_name,
+            c["query"]
+        )
         respostas.append(resposta)
 
         yield TextMessageContentEvent(
