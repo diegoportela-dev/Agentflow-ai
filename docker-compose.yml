@@ -10,12 +10,12 @@ services:
       - CARTAO_CREDITO_AGENT_URL=http://cartao_credito_agent:8000
       - ABRIR_CONTA_AGENT_URL=http://abrir_conta_agent:8000
 
-  frontend:
-    build: ./frontend
+  frontend-streamlit:
+    build: ./frontend-streamlit
     ports:
       - "9090:9090"
     volumes:
-      - ./frontend:/app
+      - ./frontend-streamlit:/app
 
   abrir_conta_agent:
     build: 
@@ -41,12 +41,12 @@ services:
     ports:
       - "8084:8000"
 
-  frontend-ag-ui:
-    build: ./frontend2
+  frontend-react:
+    build: ./frontend-react
     ports:
       - "3000:3000"
     volumes:
-      - ./frontend2:/app
+      - ./frontend-react:/app
       - /app/node_modules
     environment:
       - CHOKIDAR_USEPOLLING=true
