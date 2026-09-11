@@ -1,11 +1,6 @@
 import logging
 import uuid
 
-from langgraph.graph import StateGraph, START, END
-from langgraph.types import Send
-from typing import TypedDict, Annotated
-from operator import add
-
 from ag_ui.core import (
     EventType,
     TextMessageStartEvent,
@@ -20,6 +15,10 @@ from src.infrastructure.dependencies import (
 )
 from src.domain.agent_gateway import AgentGateway
 from src.application.supervisor_service import SupervisorService
+from src.application.supervisor_graph import (
+    State,
+    build_supervisor_graph,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -31,14 +30,9 @@ supervisor_service = SupervisorService(
     routing_strategy=routing_strategy,
 )
 
-# -----------------------------
-# STATE DO LANGGRAPH
-# -----------------------------
-
-
-class State(TypedDict):
-    query: str
-    responses: Annotated[list[str], add]
+graph = build_supervisor_graph(
+    supervisor_service
+)
 
 # -----------------------------
 # EVENTO PARA STATE UPDATE
@@ -48,65 +42,6 @@ class State(TypedDict):
 class StateUpdateEvent(BaseModel):
     type: str = "STATE_UPDATE"
     state: dict
-
-# -----------------------------
-# ROUTER
-# -----------------------------
-
-
-async def no_de_roteamento(state: State):
-    query = state.get("query", "")
-
-    classifications = await supervisor_service.route(query)
-
-    return [
-        Send(
-            c["agent"],
-            {"query": c["query"]}
-        )
-        for c in classifications
-    ]
-
-# -----------------------------
-# NODE CARTAO
-# -----------------------------
-
-
-async def cartao_credito_node(state: State):
-    query = state.get("query", "")
-
-    resposta = await supervisor_service.execute_agent(
-        "cartao_credito",
-        query
-    )
-
-    return {"responses": [resposta]}
-
-# -----------------------------
-# NODE ABRIR CONTA
-# -----------------------------
-
-
-async def abrir_conta_node(state: State):
-    query = state.get("query", "")
-
-    resposta = await supervisor_service.execute_agent(
-        "abrir_conta",
-        query
-    )
-
-    return {"responses": [resposta]}
-
-# -----------------------------
-# BUILD DO GRAFO
-# -----------------------------
-builder = StateGraph(State)
-builder.add_node("cartao_credito", cartao_credito_node)
-builder.add_node("abrir_conta", abrir_conta_node)
-builder.add_conditional_edges(START, no_de_roteamento)
-builder.add_edge("cartao_credito", END)
-builder.add_edge("abrir_conta", END)
-graph = builder.compile()
 
 # -----------------------------
 # EXECUTOR DO SUPERVISOR (NORMAL)
