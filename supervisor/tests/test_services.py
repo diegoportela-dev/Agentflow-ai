@@ -44,3 +44,33 @@ async def test_abrir_conta_node(monkeypatch):
     assert result == {
         "responses": ["resposta-abrir_conta"]
     }
+
+@pytest.mark.asyncio
+async def test_no_de_roteamento(monkeypatch):
+    class FakeRoutingStrategy:
+        async def route(self, query: str) -> list[dict]:
+            return [
+                {
+                    "agent": "abrir_conta",
+                    "query": query,
+                }
+            ]
+
+    monkeypatch.setattr(
+        services,
+        "routing_strategy",
+        FakeRoutingStrategy()
+    )
+
+    result = await services.no_de_roteamento(
+        {
+            "query": "Quero abrir uma conta",
+            "responses": [],
+        }
+    )
+
+    assert len(result) == 1
+    assert result[0].node == "abrir_conta"
+    assert result[0].arg == {
+        "query": "Quero abrir uma conta"
+    }
