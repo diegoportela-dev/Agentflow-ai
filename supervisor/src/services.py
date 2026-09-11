@@ -19,12 +19,17 @@ from src.infrastructure.dependencies import (
     get_agent_routing_strategy,
 )
 from src.domain.agent_gateway import AgentGateway
-from src.infrastructure.dependencies import get_agent_gateway
+from src.application.supervisor_service import SupervisorService
 
 logger = logging.getLogger(__name__)
 
 agent_gateway: AgentGateway = get_agent_gateway()
 routing_strategy: AgentRoutingStrategy = get_agent_routing_strategy()
+
+supervisor_service = SupervisorService(
+    agent_gateway=agent_gateway,
+    routing_strategy=routing_strategy,
+)
 
 # -----------------------------
 # STATE DO LANGGRAPH
@@ -51,9 +56,16 @@ class StateUpdateEvent(BaseModel):
 
 async def no_de_roteamento(state: State):
     query = state.get("query", "")
-    classifications = await routing_strategy.route(query)
-    logger.info(f"Classificação: {classifications}")
-    return [Send(c["agent"], {"query": c["query"]}) for c in classifications]
+
+    classifications = await supervisor_service.route(query)
+
+    return [
+        Send(
+            c["agent"],
+            {"query": c["query"]}
+        )
+        for c in classifications
+    ]
 
 # -----------------------------
 # NODE CARTAO
@@ -62,11 +74,12 @@ async def no_de_roteamento(state: State):
 
 async def cartao_credito_node(state: State):
     query = state.get("query", "")
-    logger.info("Executando agente CARTAO_CREDITO")
-    resposta = await agent_gateway.send(
+
+    resposta = await supervisor_service.execute_agent(
         "cartao_credito",
         query
     )
+
     return {"responses": [resposta]}
 
 # -----------------------------
@@ -76,11 +89,12 @@ async def cartao_credito_node(state: State):
 
 async def abrir_conta_node(state: State):
     query = state.get("query", "")
-    logger.info("Executando agente ABRIR_CONTA")
-    resposta = await agent_gateway.send(
+
+    resposta = await supervisor_service.execute_agent(
         "abrir_conta",
         query
     )
+
     return {"responses": [resposta]}
 
 # -----------------------------
@@ -140,7 +154,9 @@ async def executar_supervisor_stream(input_data):
     yield StateUpdateEvent(state=state)
 
     # Classificação de agentes
-    classifications = await classifique_intencao_do_usuario(user_message)
+    classifications = await supervisor_service.route(
+        user_message
+    )
     agentes = [c["agent"] for c in classifications]
     yield TextMessageContentEvent(
         type=EventType.TEXT_MESSAGE_CONTENT,
@@ -162,7 +178,7 @@ async def executar_supervisor_stream(input_data):
             delta=f"Chamando agente: {agent_name}...\n"
         )
 
-        resposta = await agent_gateway.send(
+        resposta = await supervisor_service.execute_agent(
             agent_name,
             c["query"]
         )

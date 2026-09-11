@@ -3,19 +3,29 @@ import pytest
 import src.services as services
 
 
-class FakeAgentGateway:
-    async def send(self, agent: str, message: str) -> str:
+class FakeSupervisorService:
+    async def route(self, query: str) -> list[dict]:
+        return [
+            {
+                "agent": "abrir_conta",
+                "query": query,
+            }
+        ]
+
+    async def execute_agent(
+        self,
+        agent: str,
+        query: str,
+    ) -> str:
         return f"resposta-{agent}"
 
 
 @pytest.mark.asyncio
 async def test_cartao_credito_node(monkeypatch):
-    fake_gateway = FakeAgentGateway()
-
     monkeypatch.setattr(
         services,
-        "agent_gateway",
-        fake_gateway
+        "supervisor_service",
+        FakeSupervisorService()
     )
 
     result = await services.cartao_credito_node(
@@ -29,12 +39,10 @@ async def test_cartao_credito_node(monkeypatch):
 
 @pytest.mark.asyncio
 async def test_abrir_conta_node(monkeypatch):
-    fake_gateway = FakeAgentGateway()
-
     monkeypatch.setattr(
         services,
-        "agent_gateway",
-        fake_gateway
+        "supervisor_service",
+        FakeSupervisorService()
     )
 
     result = await services.abrir_conta_node(
@@ -45,21 +53,13 @@ async def test_abrir_conta_node(monkeypatch):
         "responses": ["resposta-abrir_conta"]
     }
 
+
 @pytest.mark.asyncio
 async def test_no_de_roteamento(monkeypatch):
-    class FakeRoutingStrategy:
-        async def route(self, query: str) -> list[dict]:
-            return [
-                {
-                    "agent": "abrir_conta",
-                    "query": query,
-                }
-            ]
-
     monkeypatch.setattr(
         services,
-        "routing_strategy",
-        FakeRoutingStrategy()
+        "supervisor_service",
+        FakeSupervisorService()
     )
 
     result = await services.no_de_roteamento(
