@@ -13,14 +13,18 @@ from ag_ui.core import (
     TextMessageEndEvent
 )
 from pydantic import BaseModel
-
-from src.agents import classifique_intencao_do_usuario
+from src.domain.agent_routing_strategy import AgentRoutingStrategy
+from src.infrastructure.dependencies import (
+    get_agent_gateway,
+    get_agent_routing_strategy,
+)
 from src.domain.agent_gateway import AgentGateway
 from src.infrastructure.dependencies import get_agent_gateway
 
 logger = logging.getLogger(__name__)
 
 agent_gateway: AgentGateway = get_agent_gateway()
+routing_strategy: AgentRoutingStrategy = get_agent_routing_strategy()
 
 # -----------------------------
 # STATE DO LANGGRAPH
@@ -47,7 +51,7 @@ class StateUpdateEvent(BaseModel):
 
 async def no_de_roteamento(state: State):
     query = state.get("query", "")
-    classifications = await classifique_intencao_do_usuario(query)
+    classifications = await routing_strategy.route(query)
     logger.info(f"Classificação: {classifications}")
     return [Send(c["agent"], {"query": c["query"]}) for c in classifications]
 

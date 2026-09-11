@@ -1,5 +1,7 @@
 from src.domain.agent_gateway import AgentGateway
+from src.domain.agent_routing_strategy import AgentRoutingStrategy
 from src.infrastructure.a2a_agent_gateway import A2AAgentGateway
+from src.infrastructure.llm_routing_strategy import LLMRoutingStrategy
 
 
 AGENTS = {
@@ -10,3 +12,7 @@ AGENTS = {
 
 def get_agent_gateway() -> AgentGateway:
     return A2AAgentGateway(AGENTS)
+
+
+def get_agent_routing_strategy() -> AgentRoutingStrategy:
+    return LLMRoutingStrategy()
