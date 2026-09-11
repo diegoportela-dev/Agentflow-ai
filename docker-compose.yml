@@ -2,22 +2,22 @@ services:
 
   supervisor:
     build: ./supervisor
-    container_name: mdbank_supervisor_agents
     ports:
       - "8080:8000"
     volumes:
       - ./supervisor:/app
+    environment:
+      - CARTAO_CREDITO_AGENT_URL=http://cartao_credito_agent:8000
+      - ABRIR_CONTA_AGENT_URL=http://abrir_conta_agent:8000
 
   frontend:
     build: ./frontend
-    container_name: mdbank_frontend
     ports:
       - "9090:9090"
     volumes:
       - ./frontend:/app
 
   abrir_conta_agent:
-    container_name: abrir_conta_agent
     build: 
       context: ./agents/abrir_conta
     volumes:
@@ -26,7 +26,6 @@ services:
       - "8081:8000"
 
   cartao_credito_agent:
-    container_name: cartao_credito_agent
     build: 
       context: ./agents/cartao_credito
     volumes:
@@ -35,7 +34,6 @@ services:
       - "8082:8000"
 
   recursos:
-    container_name: recursos
     build:
       context: ./recursos
     volumes:
@@ -45,7 +43,6 @@ services:
 
   frontend-ag-ui:
     build: ./frontend2
-    container_name: frontend-ag-ui
     ports:
       - "3000:3000"
     volumes:
@@ -59,7 +56,6 @@ services:
     command: npm start
 
   bfa:
-    container_name: bfa
     build:
       context: ./bfa
     volumes:
