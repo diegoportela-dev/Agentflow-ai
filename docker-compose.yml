@@ -2,68 +2,140 @@ services:
 
   supervisor:
     build: ./supervisor
+
     ports:
       - "8080:8000"
+
     volumes:
       - ./supervisor:/app
+
     environment:
-      - CARTAO_CREDITO_AGENT_URL=http://cartao_credito_agent:8000
-      - ABRIR_CONTA_AGENT_URL=http://abrir_conta_agent:8000
+      CARTAO_CREDITO_AGENT_URL: http://cartao_credito_agent:8000
+      ABRIR_CONTA_AGENT_URL: http://abrir_conta_agent:8000
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
 
   frontend-streamlit:
     build: ./frontend-streamlit
+
     ports:
       - "9090:9090"
+
     volumes:
       - ./frontend-streamlit:/app
 
+
   abrir_conta_agent:
-    build: 
+    build:
       context: ./agents/abrir_conta
+
     volumes:
       - ./agents/abrir_conta:/app
+
     ports:
       - "8081:8000"
 
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+
   cartao_credito_agent:
-    build: 
+    build:
       context: ./agents/cartao_credito
+
     volumes:
       - ./agents/cartao_credito:/app
+
     ports:
       - "8082:8000"
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
 
   recursos:
     build:
       context: ./recursos
+
     volumes:
       - ./recursos:/app
+
     ports:
       - "8084:8000"
 
+    healthcheck:
+      test:
+        [
+          "CMD",
+          "python",
+          "-c",
+          "import socket; s=socket.create_connection(('127.0.0.1', 8000), 2); s.close()"
+        ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
+
   frontend-react:
     build: ./frontend-react
+
     ports:
       - "3000:3000"
+
     volumes:
       - ./frontend-react:/app
       - /app/node_modules
+
     environment:
-      - CHOKIDAR_USEPOLLING=true
-      - WATCHPACK_POLLING=true
-      - CHOKIDAR_INTERVAL=1000
-      - FAST_REFRESH=true
+      CHOKIDAR_USEPOLLING: "true"
+      WATCHPACK_POLLING: "true"
+      CHOKIDAR_INTERVAL: "1000"
+      FAST_REFRESH: "true"
+
     command: npm start
+
 
   bfa:
     build:
       context: ./bfa
+
     volumes:
       - ./bfa:/app
+
     ports:
       - "8083:8000"
+
     depends_on:
-      - recursos
-      - supervisor
-      - abrir_conta_agent
-      - cartao_credito_agent
+      recursos:
+        condition: service_healthy
+
+      supervisor:
+        condition: service_healthy
+
+      abrir_conta_agent:
+        condition: service_healthy
+
+      cartao_credito_agent:
+        condition: service_healthy
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s

@@ -2,7 +2,9 @@ from a2a.server.apps import A2AStarletteApplication
 from a2a.server.request_handlers import DefaultRequestHandler
 from a2a.server.tasks import InMemoryTaskStore
 from a2a.types import AgentCapabilities, AgentCard, AgentSkill
+from starlette.responses import JSONResponse
 from executor import CartaoDeCreditoExecutor
+
 
 # -----------------------
 # Definição do skill
@@ -53,3 +55,14 @@ server = A2AStarletteApplication(
 
 # EXPOSIÇÃO DO APP PARA O UVICORN
 app = server.build()
+
+
+async def health(request):
+    return JSONResponse({"status": "ok"})
+
+
+app.router.add_route(
+    "/health",
+    health,
+    methods=["GET"],
+)
