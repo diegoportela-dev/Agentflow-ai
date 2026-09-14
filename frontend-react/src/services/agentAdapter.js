@@ -2,24 +2,33 @@ import { HttpAgent } from "@ag-ui/client";
 
 export class MDBankAgent {
   constructor(url, agentName) {
-    this.url = url; // ✅ salva a URL aqui
+    this.url = url;
     this.agent = new HttpAgent({ url });
     this.agentName = agentName;
+
+    this.sessionId = crypto.randomUUID();
+    this.clientId = crypto.randomUUID();
+  }
+
+  newConversation() {
+    this.sessionId = crypto.randomUUID();
   }
 
   async run(message) {
     try {
       console.log("📤 Enviando para:", this.url);
+      console.log("💬 Session:", this.sessionId);
 
       const response = await fetch(this.url, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+
         body: JSON.stringify({
           message: message,
-          session_id: "123",
-          client_id: "123",
+          session_id: this.sessionId,
+          client_id: this.clientId,
           agent: this.agentName,
         }),
       });
@@ -28,30 +37,44 @@ export class MDBankAgent {
 
       if (!response.ok) {
         const text = await response.text();
-        console.error("❌ Erro backend:", text);
+
+        console.error(
+          "❌ Erro backend:",
+          text
+        );
+
         throw new Error("Erro na API");
       }
 
       const data = await response.json();
 
-      console.log("✅ Resposta:", data);
+      console.log(
+        "✅ Resposta:",
+        data
+      );
 
       return {
         messages: [
           {
             role: "assistant",
-            content: data?.resposta || "Sem resposta",
+            content:
+              data?.resposta ||
+              "Sem resposta",
           },
         ],
       };
     } catch (err) {
-      console.error("🔥 ERRO COMPLETO:", err);
+      console.error(
+        "🔥 ERRO COMPLETO:",
+        err
+      );
 
       return {
         messages: [
           {
             role: "assistant",
-            content: "Erro ao chamar agente",
+            content:
+              "Erro ao chamar agente",
           },
         ],
       };

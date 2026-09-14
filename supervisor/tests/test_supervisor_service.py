@@ -4,12 +4,21 @@ from src.application.supervisor_service import SupervisorService
 
 
 class FakeAgentGateway:
-    async def send(self, agent: str, message: str) -> str:
+    async def send(
+        self,
+        agent: str,
+        message: str,
+        thread_id: str,
+    ) -> str:
         return f"resposta-{agent}-{message}"
 
 
 class FakeRoutingStrategy:
-    async def route(self, query: str) -> list[dict]:
+    async def route(
+        self,
+        query: str,
+        thread_id: str,
+    ) -> list[dict]:
         return [
             {
                 "agent": "abrir_conta",
@@ -26,7 +35,8 @@ async def test_route():
     )
 
     result = await service.route(
-        "Quero abrir uma conta"
+        query="Quero abrir uma conta",
+        thread_id="test-thread-1",
     )
 
     assert result == [
@@ -45,8 +55,9 @@ async def test_execute_agent():
     )
 
     result = await service.execute_agent(
-        "cartao_credito",
-        "Quero um cartão"
+        agent="cartao_credito",
+        query="Quero um cartão",
+        thread_id="test-thread-1",
     )
 
     assert result == (

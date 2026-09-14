@@ -16,7 +16,12 @@ class A2AAgentGateway(AgentGateway):
         self.http_client = httpx.AsyncClient(timeout=30)
         self.client_cache = {}
 
-    async def send(self, agent: str, message: str) -> str:
+    async def send(
+        self,
+        agent: str,
+        message: str,
+        thread_id: str,
+    ) -> str:
         agent_url = self.agents[agent]
 
         client = await self._get_client(agent_url)
@@ -31,11 +36,15 @@ class A2AAgentGateway(AgentGateway):
                     )
                 )
             ],
+            metadata={
+                "thread_id": thread_id,
+            },
         )
 
         logger.info(
-            "Enviando mensagem para agente %s",
-            agent
+            "Enviando mensagem para agente %s | thread_id=%s",
+            agent,
+            thread_id,
         )
 
         async for event in client.send_message(msg):
@@ -52,7 +61,7 @@ class A2AAgentGateway(AgentGateway):
 
         logger.info(
             "Descobrindo AgentCard em %s",
-            agent_url
+            agent_url,
         )
 
         resolver = A2ACardResolver(
@@ -64,12 +73,12 @@ class A2AAgentGateway(AgentGateway):
 
         logger.info(
             "Agent encontrado: %s",
-            agent_card.name
+            agent_card.name,
         )
 
         config = ClientConfig(
             httpx_client=self.http_client,
-            streaming=False
+            streaming=False,
         )
 
         factory = ClientFactory(config)

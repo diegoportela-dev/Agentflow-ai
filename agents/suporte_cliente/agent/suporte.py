@@ -2,6 +2,9 @@ import os
 
 from dotenv import load_dotenv
 from langchain.agents import create_agent
+from langchain.chat_models import init_chat_model
+from langchain_core.messages import HumanMessage
+from langgraph.checkpoint.memory import InMemorySaver
 from langchain_openai import ChatOpenAI
 
 
@@ -42,21 +45,26 @@ def create_support_agent():
 agent = create_support_agent()
 
 
-async def run_agent(message: str) -> str:
-    result = await agent.ainvoke(
+async def run_agent(
+    message: str,
+    thread_id: str,
+):
+    global agent
+
+    if not agent:
+        agent = await build_support_agent()
+
+    resultado = await agent.ainvoke(
         {
             "messages": [
-                {
-                    "role": "user",
-                    "content": message,
-                }
+                HumanMessage(content=message)
             ]
+        },
+        {
+            "configurable": {
+                "thread_id": thread_id
+            }
         }
     )
 
-    messages = result.get("messages", [])
-
-    if not messages:
-        return "Não foi possível gerar uma resposta."
-
-    return messages[-1].content
+    return resultado["messages"][-1].content

@@ -51,7 +51,8 @@ async def stream_supervisor_response(
     )
 
     classifications = await supervisor_service.route(
-        user_message
+        query=user_message,
+        thread_id=input_data.thread_id,
     )
 
     agentes = [
@@ -84,8 +85,9 @@ async def stream_supervisor_response(
         )
 
         resposta = await supervisor_service.execute_agent(
-            agent_name,
-            query,
+            agent=agent_name,
+            query=query,
+            thread_id=input_data.thread_id,
         )
 
         respostas.append(resposta)

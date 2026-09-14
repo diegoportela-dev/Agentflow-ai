@@ -37,13 +37,32 @@ app.add_middleware(
 @app.post("/chat")
 async def chat_endpoint(payload: ChatRequest):
     if not payload.message:
-        return JSONResponse(status_code=400, content={"error": "Campo 'message' é obrigatório"})
+        return JSONResponse(
+            status_code=400,
+            content={
+                "error": "Campo 'message' é obrigatório"
+            },
+        )
+
     try:
-        resposta = await executar_supervisor(texto_usuario=payload.message)
-        return {"resposta": resposta}
+        resposta = await executar_supervisor(
+            texto_usuario=payload.message,
+            thread_id=payload.session_id,
+        )
+
+        return {
+            "resposta": resposta
+        }
+
     except Exception as e:
         logger.exception("Erro no /chat")
-        return JSONResponse(status_code=500, content={"error": str(e)})
+
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": str(e)
+            },
+        )
 
 
 @app.post("/")

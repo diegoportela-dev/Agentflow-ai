@@ -1,3 +1,5 @@
+import { useRef } from "react";
+
 import { useAppState } from "./StateContext";
 import AppLayout from "./Layout";
 import ChatBox from "./components/ChatBox";
@@ -7,6 +9,8 @@ export default function ChatPage() {
   const { messages, setMessages, loading, setLoading, updateState } =
     useAppState();
 
+  const threadIdRef = useRef(crypto.randomUUID());
+
   async function sendMessage(message) {
     if (!message.trim()) return;
 
@@ -15,18 +19,21 @@ export default function ChatPage() {
       role: "user",
       content: message,
     };
+
     setMessages((prev) => [...prev, userMessage]);
     setLoading(true);
 
     const payload = {
-      thread_id: "1",
+      thread_id: threadIdRef.current,
       run_id: crypto.randomUUID(),
       messages: [
         {
           id: crypto.randomUUID(),
           role: "user",
           content: message,
-          user: { id: "user-123" },
+          user: {
+            id: "user-123",
+          },
         },
       ],
       state: {},
@@ -52,30 +59,56 @@ export default function ChatPage() {
 
     setMessages((prev) => [
       ...prev,
-      { id: assistantId, role: "assistant", content: "" },
+      {
+        id: assistantId,
+        role: "assistant",
+        content: "",
+      },
     ]);
 
     while (true) {
       const { done, value } = await reader.read();
+
       if (done) break;
 
-      const chunk = decoder.decode(value, { stream: true });
+      const chunk = decoder.decode(value, {
+        stream: true,
+      });
+
       const lines = chunk.split("\n");
 
-      for (let line of lines) {
+      for (const line of lines) {
         if (!line.startsWith("data:")) continue;
-        const jsonStr = line.replace("data:", "").trim();
+
+        const jsonStr = line
+          .replace("data:", "")
+          .trim();
+
         if (!jsonStr) continue;
 
         try {
           const event = JSON.parse(jsonStr);
 
-          if (event.type === "TEXT_MESSAGE_CONTENT") {
+          if (
+            event.type === "TEXT_MESSAGE_CONTENT"
+          ) {
             assistantMessage += event.delta;
+
             setMessages((prev) => {
               const updated = [...prev];
-              const index = updated.findIndex((m) => m.id === assistantId);
-              if (index !== -1) updated[index].content = assistantMessage;
+
+              const index = updated.findIndex(
+                (messageItem) =>
+                  messageItem.id === assistantId
+              );
+
+              if (index !== -1) {
+                updated[index] = {
+                  ...updated[index],
+                  content: assistantMessage,
+                };
+              }
+
               return updated;
             });
           }
@@ -99,7 +132,9 @@ export default function ChatPage() {
   return (
     <AppLayout>
       {messages.length === 0 ? (
-        <PromptSuggestions onSelect={sendMessage} />
+        <PromptSuggestions
+          onSelect={sendMessage}
+        />
       ) : (
         <ChatBox
           messages={messages}

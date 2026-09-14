@@ -9,6 +9,7 @@ from src.application.supervisor_service import SupervisorService
 
 class State(TypedDict):
     query: str
+    thread_id: str
     responses: Annotated[list[str], add]
 
 
@@ -17,23 +18,33 @@ def build_supervisor_graph(
 ):
     async def no_de_roteamento(state: State):
         query = state.get("query", "")
+        thread_id = state.get("thread_id", "")
 
-        classifications = await supervisor_service.route(query)
+        classifications = await supervisor_service.route(
+            query=query,
+            thread_id=thread_id,
+        )
 
         return [
             Send(
-                c["agent"],
-                {"query": c["query"]}
+                classification["agent"],
+                {
+                    "query": classification["query"],
+                    "thread_id": thread_id,
+                    "responses": [],
+                },
             )
-            for c in classifications
+            for classification in classifications
         ]
 
     async def cartao_credito_node(state: State):
         query = state.get("query", "")
+        thread_id = state.get("thread_id", "")
 
         resposta = await supervisor_service.execute_agent(
-            "cartao_credito",
-            query
+            agent="cartao_credito",
+            query=query,
+            thread_id=thread_id,
         )
 
         return {
@@ -42,10 +53,12 @@ def build_supervisor_graph(
 
     async def abrir_conta_node(state: State):
         query = state.get("query", "")
+        thread_id = state.get("thread_id", "")
 
         resposta = await supervisor_service.execute_agent(
-            "abrir_conta",
-            query
+            agent="abrir_conta",
+            query=query,
+            thread_id=thread_id,
         )
 
         return {
@@ -54,10 +67,12 @@ def build_supervisor_graph(
 
     async def suporte_cliente_node(state: State):
         query = state.get("query", "")
+        thread_id = state.get("thread_id", "")
 
         resposta = await supervisor_service.execute_agent(
-            "suporte_cliente",
-            query
+            agent="suporte_cliente",
+            query=query,
+            thread_id=thread_id,
         )
 
         return {
@@ -68,37 +83,37 @@ def build_supervisor_graph(
 
     builder.add_node(
         "cartao_credito",
-        cartao_credito_node
+        cartao_credito_node,
     )
 
     builder.add_node(
         "abrir_conta",
-        abrir_conta_node
+        abrir_conta_node,
     )
 
     builder.add_node(
         "suporte_cliente",
-        suporte_cliente_node
+        suporte_cliente_node,
     )
 
     builder.add_conditional_edges(
         START,
-        no_de_roteamento
+        no_de_roteamento,
     )
 
     builder.add_edge(
         "cartao_credito",
-        END
+        END,
     )
 
     builder.add_edge(
         "abrir_conta",
-        END
+        END,
     )
 
     builder.add_edge(
         "suporte_cliente",
-        END
+        END,
     )
 
     return builder.compile()

@@ -15,12 +15,19 @@ class SupervisorService:
         self.agent_gateway = agent_gateway
         self.routing_strategy = routing_strategy
 
-    async def route(self, query: str) -> list[dict]:
-        classifications = await self.routing_strategy.route(query)
+    async def route(
+        self,
+        query: str,
+        thread_id: str,
+    ) -> list[dict]:
+        classifications = await self.routing_strategy.route(
+            query=query,
+            thread_id=thread_id,
+        )
 
         logger.info(
             "Classificação: %s",
-            classifications
+            classifications,
         )
 
         return classifications
@@ -29,13 +36,15 @@ class SupervisorService:
         self,
         agent: str,
         query: str,
+        thread_id: str,
     ) -> str:
         logger.info(
             "Executando agente %s",
-            agent
+            agent,
         )
 
         return await self.agent_gateway.send(
-            agent,
-            query
+            agent=agent,
+            message=query,
+            thread_id=thread_id,
         )

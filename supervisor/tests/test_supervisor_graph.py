@@ -4,7 +4,11 @@ from src.application.supervisor_graph import build_supervisor_graph
 
 
 class FakeSupervisorService:
-    async def route(self, query: str) -> list[dict]:
+    async def route(
+        self,
+        query: str,
+        thread_id: str,
+    ) -> list[dict]:
         return [
             {
                 "agent": "abrir_conta",
@@ -16,6 +20,7 @@ class FakeSupervisorService:
         self,
         agent: str,
         query: str,
+        thread_id: str,
     ) -> str:
         return f"resposta-{agent}"
 
@@ -29,6 +34,7 @@ async def test_supervisor_graph_routes_and_executes_agent():
     result = await graph.ainvoke(
         {
             "query": "Quero abrir uma conta",
+            "thread_id": "test-thread-1",
             "responses": [],
         }
     )
@@ -41,7 +47,11 @@ async def test_supervisor_graph_routes_and_executes_agent():
 @pytest.mark.asyncio
 async def test_supervisor_graph_routes_to_support():
     class FakeSupervisorService:
-        async def route(self, query: str) -> list[dict]:
+        async def route(
+            self,
+            query: str,
+            thread_id: str,
+        ) -> list[dict]:
             return [
                 {
                     "agent": "suporte_cliente",
@@ -53,6 +63,7 @@ async def test_supervisor_graph_routes_to_support():
             self,
             agent: str,
             query: str,
+            thread_id: str,
         ) -> str:
             return f"resposta-{agent}"
 
@@ -63,6 +74,7 @@ async def test_supervisor_graph_routes_to_support():
     result = await graph.ainvoke(
         {
             "query": "Quero falar com o suporte",
+            "thread_id": "test-thread-2",
             "responses": [],
         }
     )
