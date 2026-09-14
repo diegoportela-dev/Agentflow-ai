@@ -12,6 +12,7 @@ services:
     environment:
       CARTAO_CREDITO_AGENT_URL: http://cartao_credito_agent:8000
       ABRIR_CONTA_AGENT_URL: http://abrir_conta_agent:8000
+      SUPORTE_CLIENTE_AGENT_URL: http://suporte_cliente_agent:8000
 
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
@@ -109,6 +110,26 @@ services:
 
     command: npm start
 
+  suporte_cliente_agent:
+    build:
+      context: ./agents/suporte_cliente
+
+    volumes:
+      - ./agents/suporte_cliente:/app
+
+    ports:
+      - "8085:8000"
+
+    env_file:
+      - ./agents/suporte_cliente/.env
+
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+
 
   bfa:
     build:
@@ -131,6 +152,9 @@ services:
         condition: service_healthy
 
       cartao_credito_agent:
+        condition: service_healthy
+
+      suporte_cliente_agent:
         condition: service_healthy
 
     healthcheck:

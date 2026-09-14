@@ -52,6 +52,18 @@ def build_supervisor_graph(
             "responses": [resposta]
         }
 
+    async def suporte_cliente_node(state: State):
+        query = state.get("query", "")
+
+        resposta = await supervisor_service.execute_agent(
+            "suporte_cliente",
+            query
+        )
+
+        return {
+            "responses": [resposta]
+        }
+
     builder = StateGraph(State)
 
     builder.add_node(
@@ -62,6 +74,11 @@ def build_supervisor_graph(
     builder.add_node(
         "abrir_conta",
         abrir_conta_node
+    )
+
+    builder.add_node(
+        "suporte_cliente",
+        suporte_cliente_node
     )
 
     builder.add_conditional_edges(
@@ -76,6 +93,11 @@ def build_supervisor_graph(
 
     builder.add_edge(
         "abrir_conta",
+        END
+    )
+
+    builder.add_edge(
+        "suporte_cliente",
         END
     )
 

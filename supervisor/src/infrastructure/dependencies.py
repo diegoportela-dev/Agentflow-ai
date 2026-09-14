@@ -9,6 +9,7 @@ def get_agent_gateway() -> AgentGateway:
     agents = {
         "cartao_credito": settings.cartao_credito_agent_url,
         "abrir_conta": settings.abrir_conta_agent_url,
+        "suporte_cliente": settings.suporte_cliente_agent_url,
     }
 
     return A2AAgentGateway(agents)

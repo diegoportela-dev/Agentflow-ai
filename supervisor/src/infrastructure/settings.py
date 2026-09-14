@@ -13,5 +13,10 @@ class Settings:
             "http://abrir_conta_agent:8000",
         )
 
+        self.suporte_cliente_agent_url = os.getenv(
+            "SUPORTE_CLIENTE_AGENT_URL",
+            "http://suporte_cliente_agent:8000",
+        )
+
 
 settings = Settings()
