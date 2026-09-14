@@ -435,6 +435,50 @@ Isso facilita a visualização do processo de orquestração dos agentes.
 
 ---
 
+## Memória e isolamento de sessões
+
+O sistema mantém o contexto das conversas utilizando `thread_id`.
+
+Cada sessão do frontend possui um identificador próprio, permitindo que o
+supervisor e os agentes especializados mantenham o contexto correto da
+conversa sem compartilhar memória entre usuários ou sessões diferentes.
+
+O `thread_id` é propagado durante o fluxo:
+
+```text
+React
+  |
+  | thread_id
+  v
+Supervisor
+  |
+  | thread_id
+  v
+A2A Gateway
+  |
+  | metadata
+  v
+Agente especializado
+  |
+  v
+LangGraph Checkpointer
+```
+
+Isso permite manter informações contextuais da conversa, como o assunto
+tratado anteriormente, sem utilizar um identificador global compartilhado
+entre todas as sessões.
+
+Exemplo:
+
+```text
+Sessão A -> thread_id: abc-123
+Sessão B -> thread_id: xyz-789
+```
+
+As duas conversas possuem memórias independentes.
+
+---
+
 ## Testes
 
 Os testes automatizados utilizam `pytest`.
@@ -661,6 +705,8 @@ Principais funcionalidades implementadas:
 - [x] Testes automatizados
 - [x] Ruff
 - [x] GitHub Actions / CI
+- [x] Memória contextual por sessão
+- [x] Isolamento de conversas utilizando thread_id
 
 ---
 
