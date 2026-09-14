@@ -2,9 +2,9 @@ import uuid
 
 from ag_ui.core import (
     EventType,
-    TextMessageStartEvent,
     TextMessageContentEvent,
     TextMessageEndEvent,
+    TextMessageStartEvent,
 )
 from pydantic import BaseModel
 

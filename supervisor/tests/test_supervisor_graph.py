@@ -36,3 +36,37 @@ async def test_supervisor_graph_routes_and_executes_agent():
     assert result["responses"] == [
         "resposta-abrir_conta"
     ]
+
+
+@pytest.mark.asyncio
+async def test_supervisor_graph_routes_to_support():
+    class FakeSupervisorService:
+        async def route(self, query: str) -> list[dict]:
+            return [
+                {
+                    "agent": "suporte_cliente",
+                    "query": query,
+                }
+            ]
+
+        async def execute_agent(
+            self,
+            agent: str,
+            query: str,
+        ) -> str:
+            return f"resposta-{agent}"
+
+    graph = build_supervisor_graph(
+        FakeSupervisorService()
+    )
+
+    result = await graph.ainvoke(
+        {
+            "query": "Quero falar com o suporte",
+            "responses": [],
+        }
+    )
+
+    assert result["responses"] == [
+        "resposta-suporte_cliente"
+    ]

@@ -3,7 +3,6 @@ import logging
 from src.domain.agent_gateway import AgentGateway
 from src.domain.agent_routing_strategy import AgentRoutingStrategy
 
-
 logger = logging.getLogger(__name__)
 
 

@@ -1,15 +1,15 @@
 import logging
 
+from src.application.supervisor_graph import (
+    State,
+    build_supervisor_graph,
+)
+from src.application.supervisor_service import SupervisorService
+from src.domain.agent_gateway import AgentGateway
 from src.domain.agent_routing_strategy import AgentRoutingStrategy
 from src.infrastructure.dependencies import (
     get_agent_gateway,
     get_agent_routing_strategy,
-)
-from src.domain.agent_gateway import AgentGateway
-from src.application.supervisor_service import SupervisorService
-from src.application.supervisor_graph import (
-    State,
-    build_supervisor_graph,
 )
 from src.presentation.agui_stream import (
     stream_supervisor_response,

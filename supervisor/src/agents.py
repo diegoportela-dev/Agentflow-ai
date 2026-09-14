@@ -1,15 +1,14 @@
 import logging
 import os
-from typing import List, Dict, Any
+from typing import Any
 
 from dotenv import load_dotenv
-from pydantic import BaseModel, Field
-
 from langchain.agents import create_agent
 from langchain.chat_models import init_chat_model
 from langchain_core.messages import HumanMessage
 from langchain_core.output_parsers import JsonOutputParser
 from langgraph.checkpoint.memory import InMemorySaver
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 load_dotenv()
@@ -24,7 +23,7 @@ memory = InMemorySaver()
 
 
 class RouterOutput(BaseModel):
-    agents: List[str] = Field(
+    agents: list[str] = Field(
         description="Lista de agentes que devem responder a pergunta"
     )
 
@@ -156,7 +155,7 @@ async def build_router_agent():
 async def classifique_intencao_do_usuario(
     query: str,
     thread_id: str = "1"
-) -> List[Dict[str, Any]]:
+) -> list[dict[str, Any]]:
     agent = await build_router_agent()
 
     try:

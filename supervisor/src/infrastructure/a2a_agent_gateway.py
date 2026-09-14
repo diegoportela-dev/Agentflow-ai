@@ -2,12 +2,10 @@ import logging
 import uuid
 
 import httpx
-
-from a2a.client import A2ACardResolver, ClientFactory, ClientConfig
+from a2a.client import A2ACardResolver, ClientConfig, ClientFactory
 from a2a.types import Message, Part, Role, TextPart
 
 from src.domain.agent_gateway import AgentGateway
-
 
 logger = logging.getLogger(__name__)
 
