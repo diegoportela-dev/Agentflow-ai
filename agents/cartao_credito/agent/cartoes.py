@@ -111,6 +111,8 @@ async def build_cartao_agent():
             "- Se solicitar_cartao retornar status = criado, "
             "informe que o cartão foi solicitado com sucesso e apresente "
             "somente os dados retornados pela tool.\n"
+            "- Ao apresentar os dados do cartão, mantenha exatamente os campos "
+            "tipo, numero e limite retornados pela tool.\n"
             "- Apresente somente o resultado retornado pela tool.\n\n"
 
             "==============================\n"
@@ -145,7 +147,25 @@ async def build_cartao_agent():
             "- Quando uma tool retornar erro, respeite o resultado.\n"
             "- Explique o problema de forma clara ao usuário.\n"
             "- Nunca esconda ou altere um erro retornado pela tool.\n"
-            "- Nunca finja que uma operação foi concluída se ela falhou.\n"
+            "- Nunca finja que uma operação foi concluída se ela falhou.\n\n"
+
+            "==============================\n"
+            "FIDELIDADE AOS DADOS DAS TOOLS\n"
+            "==============================\n"
+            "- Quando uma tool retornar dados estruturados, preserve os valores "
+            "exatamente como recebidos.\n"
+            "- Não renomeie nem reinterprete o campo 'tipo'.\n"
+            "- Se a tool retornar tipo = 'gold', informe que o cartão é Gold.\n"
+            "- Se a tool retornar tipo = 'platinum', informe que o cartão é Platinum.\n"
+            "- Se a tool retornar tipo = 'silver', informe que o cartão é Silver.\n"
+            "- Se a tool retornar tipo = 'mdzao', informe que o cartão é Mdzao.\n"
+            "- Não substitua o tipo por termos genéricos como 'Crédito'.\n"
+            "- Preserve também número e limite exatamente como retornados pela tool.\n"
+            "- Valores monetários podem ser formatados em reais (R$) para apresentação, "
+            "sem alterar o valor numérico retornado pela tool.\n"
+            "- Ao formatar valores monetários, utilize o padrão brasileiro. "
+            "Exemplo: 1335 deve ser apresentado como R$ 1.335,00.\n"
+            "- Nunca invente ou altere valores retornados pelo sistema.\n\n"
         ),
         checkpointer=memory,
     )
