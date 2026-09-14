@@ -26,6 +26,36 @@ O supervisor utiliza LangGraph para orquestrar o fluxo e selecionar um ou mais a
 
 ---
 
+## Demonstração
+
+### Interface principal
+
+A interface React utiliza AG-UI para interação com o sistema multiagentes e permite iniciar diferentes fluxos de atendimento.
+
+<p align="center">
+  <img
+    src="docs/images/screenshots/interface-inicial.png"
+    alt="Interface principal do AgentFlow AI"
+    width="900"
+  />
+</p>
+
+### Roteamento multiagente
+
+Neste exemplo, o usuário solicita atendimento ao suporte. O supervisor analisa a intenção, seleciona o agente suporte_cliente e encaminha a solicitação por meio do protocolo A2A.
+
+O estado compartilhado permite acompanhar em tempo real a solicitação do usuário, os agentes selecionados e as respostas retornadas durante a execução.
+
+<p align="center">
+  <img
+    src="docs/images/screenshots/suporte-cliente.png"
+    alt="Execução do agente de suporte ao cliente"
+    width="900"
+  />
+</p>
+
+---
+
 ## Principais tecnologias
 
 ### Backend
