@@ -91,6 +91,6 @@ def listar_tools():
     }
 
 
-@app.get("/")
+@app.get("/health")
 async def health():
     return {"status": "ok"}
